@@ -24,23 +24,35 @@ struct Opt {
     #[structopt(short, long)]
     codel_size: u32,
 
-    /// Enables program tracing
+    /// Enables trace log level
     #[structopt(short, long)]
     trace: bool,
+
+    /// Enables info log level
+    #[structopt(short, long)]
+    info: bool,
+
+    /// The maxiumum number of steps the interpreter will take
+    #[structopt(short, long)]
+    max_steps: Option<usize>,
 
     /// The name of the piet program to interpret
     #[structopt(parse(from_os_str))]
     file_name: PathBuf,
 }
 
-fn main() -> anyhow::Result<!> {
+fn main() -> anyhow::Result<()> {
     let opt = Opt::from_args();
 
-    if opt.trace {
-        simple_logger::init_with_level(log::Level::Trace).unwrap();
+    let log_level = if opt.trace {
+        log::Level::Trace
+    } else if opt.info {
+        log::Level::Info
     } else {
-        simple_logger::init_with_level(log::Level::Warn).unwrap();
-    }
+        log::Level::Warn
+    };
+
+    simple_logger::init_with_level(log_level)?;
 
     let img = ImageReader::open(opt.file_name)?.decode()?;
 
@@ -48,5 +60,11 @@ fn main() -> anyhow::Result<!> {
 
     let mut interpreter = program.into_interpreter();
 
-    interpreter.run()?;
+    if let Some(max_steps) = opt.max_steps {
+        interpreter.run_until(max_steps)?;
+
+        Ok(())
+    } else {
+        interpreter.run()?;
+    }
 }

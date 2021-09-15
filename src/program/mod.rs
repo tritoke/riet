@@ -282,8 +282,9 @@ impl Program {
             colours.push(b);
         }
 
-        let buf: image::RgbImage = image::ImageBuffer::from_vec(*self.cols(), *self.rows(), colours)
-            .ok_or_else(|| anyhow::anyhow!("Failed to encode codels as pixels."))?;
+        let buf: image::RgbImage =
+            image::ImageBuffer::from_vec(*self.cols(), *self.rows(), colours)
+                .ok_or_else(|| anyhow::anyhow!("Failed to encode codels as pixels."))?;
 
         buf.save(path)?;
 

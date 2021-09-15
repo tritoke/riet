@@ -1,5 +1,4 @@
 use image::Rgb;
-use std::fmt;
 
 #[allow(dead_code)]
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
@@ -92,21 +91,22 @@ impl Color {
 
             // If the colour is not matched we can interpret it as white
             Rgb(_) => {
-                log::warn!("Encountered an unrecognised colour: {:?}", rgb); 
+                log::warn!("Encountered an unrecognised colour: {:?}", rgb);
                 White
-            },
+            }
         }
     }
 
     fn hue_number(&self) -> Option<i32> {
         use Color::*;
 
+        #[rustfmt::skip]
         match *self {
-            LightRed | Red | DarkRed => Some(0),
-            LightYellow | Yellow | DarkYellow => Some(1),
-            LightGreen | Green | DarkGreen => Some(2),
-            LightCyan | Cyan | DarkCyan => Some(3),
-            LightBlue | Blue | DarkBlue => Some(4),
+            LightRed     | Red     | DarkRed     => Some(0),
+            LightYellow  | Yellow  | DarkYellow  => Some(1),
+            LightGreen   | Green   | DarkGreen   => Some(2),
+            LightCyan    | Cyan    | DarkCyan    => Some(3),
+            LightBlue    | Blue    | DarkBlue    => Some(4),
             LightMagenta | Magenta | DarkMagenta => Some(5),
 
             White | Black => None,
@@ -138,39 +138,5 @@ impl Color {
         let n2 = other.lightness_number()?;
 
         Some((n2 - n1).rem_euclid(3) as u32)
-    }
-}
-
-impl fmt::Display for Color {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use Color::*;
-
-        let shortname = match self {
-            LightRed     => "lR",
-            LightYellow  => "lY",
-            LightGreen   => "lG",
-            LightCyan    => "lC",
-            LightBlue    => "lB",
-            LightMagenta => "lM",
-
-            Red          => "nR",
-            Yellow       => "nY",
-            Green        => "nG",
-            Cyan         => "nC",
-            Blue         => "nB",
-            Magenta      => "nM",
-
-            DarkRed      => "dR",
-            DarkYellow   => "dY",
-            DarkGreen    => "dG",
-            DarkCyan     => "dC",
-            DarkBlue     => "dB",
-            DarkMagenta  => "dM",
-
-            White        => "WW",
-            Black        => "BB",
-        };
-
-        write!(f, "{}", shortname)
     }
 }
