@@ -1,5 +1,7 @@
 use image::Rgb;
 
+use crate::missing_color_white;
+
 #[allow(dead_code)]
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum Color {
@@ -92,7 +94,11 @@ impl Color {
             // If the colour is not matched we can interpret it as white
             Rgb(_) => {
                 log::warn!("Encountered an unrecognised colour: {:?}", rgb);
-                White
+                if missing_color_white() {
+                    White
+                } else {
+                    Black
+                }
             }
         }
     }

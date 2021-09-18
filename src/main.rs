@@ -7,12 +7,30 @@
 
 use image::io::Reader as ImageReader;
 use std::path::PathBuf;
+use std::sync::Once;
 use structopt::StructOpt;
 
 mod program;
 use program::Program;
 
 mod interpreter;
+
+static mut MISSING_COLOR_WHITE: bool = true;
+static MISSING_COLOR_WHITE_INIT: Once = Once::new();
+
+fn set_missing_color_white(v: bool) {
+    unsafe {
+        MISSING_COLOR_WHITE_INIT.call_once(|| {
+            MISSING_COLOR_WHITE = v;
+        })
+    }
+}
+
+pub fn missing_color_white() -> bool {
+    unsafe {
+        MISSING_COLOR_WHITE
+    }
+}
 
 #[derive(Debug, StructOpt)]
 #[structopt(
@@ -32,6 +50,10 @@ struct Opt {
     #[structopt(short, long)]
     info: bool,
 
+    /// Should missing colours be treated as white(default), or black
+    #[structopt(long = "--missing-color-black")]
+    missing_color_black: bool,
+
     /// The maxiumum number of steps the interpreter will take
     #[structopt(short, long)]
     max_steps: Option<usize>,
@@ -43,6 +65,8 @@ struct Opt {
 
 fn main() -> anyhow::Result<()> {
     let opt = Opt::from_args();
+
+    set_missing_color_white(!opt.missing_color_black);
 
     let log_level = if opt.trace {
         log::Level::Trace
