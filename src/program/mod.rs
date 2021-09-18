@@ -160,12 +160,6 @@ impl Program {
             for row in 0..program.rows {
                 let codel_color = *program.get_codel(row, col).unwrap();
 
-                // create a new color block for ourselves
-                program.blocks.insert(
-                    Point(row, col),
-                    Rc::new(RefCell::new(ColorBlock::new(codel_color, row, col))),
-                );
-
                 // represent valid neighbours by a pair of Some values
                 let neighbours = [
                     (row.checked_sub(1), Some(col)),
@@ -188,21 +182,38 @@ impl Program {
                     ),
                 ];
 
-                // check if any neighbours are the same colour
-                for neighbour in neighbours {
-                    let point = if let (Some(r), Some(c)) = neighbour {
-                        Point(r, c)
-                    } else {
-                        continue;
-                    };
+                let compatible_neighbours: Option<Vec<Point>> = neighbours.into_iter()
+                    .map(|(r, c)| {
+                        r.and_then(|row| {
+                            c.map( |col| Point(row, col))
+                        })
+                    })
+                    .filter(|p| {
+                        p.as_ref().and_then(|point| {
+                            let b = program.get_color_block(point);
+                            b.map(|block| block.color() == codel_color)
+                        }).unwrap_or(false)
+                    })
+                    .collect();
 
-                    if let Some(neigh_block) = program.blocks.get(&point) {
-                        let neigh_color: Color = (**neigh_block).borrow().color();
-
-                        if codel_color == neigh_color {
-                            program.merge_color_blocks(&Point(row, col), &point);
-                        }
+                // if we have any compatible neighbours merge them
+                if let Some(cn) = compatible_neighbours.as_ref() {
+                    for w in cn.array_windows::<2>() {
+                        let [a, b] = w;
+                        program.merge_color_blocks(a, b);
                     }
+                }
+                
+                if let Some(neigh) = compatible_neighbours.as_ref().and_then(|neighs| neighs.get(0)) {
+                    program.get_color_block_mut(neigh).unwrap()
+                        .add_codel(row, col);
+                    
+                    program.blocks.insert(Point(row, col), program.blocks.get(neigh).unwrap().clone());
+                } else {
+                    program.blocks.insert(
+                        Point(row, col),
+                        Rc::new(RefCell::new(ColorBlock::new(codel_color, row, col))),
+                    );
                 }
             }
         }

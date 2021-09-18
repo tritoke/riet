@@ -1,8 +1,8 @@
 #![feature(
     derive_default_enum,
     stmt_expr_attributes,
-    option_result_contains,
-    never_type
+    never_type,
+    array_windows,
 )]
 
 use image::io::Reader as ImageReader;
